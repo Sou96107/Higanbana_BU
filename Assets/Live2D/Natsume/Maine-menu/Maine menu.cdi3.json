@@ -1,0 +1,53 @@
+{
+	"Version": 3,
+	"Parameters": [
+		{
+			"Id": "Param",
+			"GroupId": "",
+			"Name": "サイド髪揺れ"
+		},
+		{
+			"Id": "Param2",
+			"GroupId": "",
+			"Name": "横髪揺れ"
+		},
+		{
+			"Id": "Param3",
+			"GroupId": "",
+			"Name": "結び髪揺れ"
+		},
+		{
+			"Id": "Param4",
+			"GroupId": "",
+			"Name": "両目開閉"
+		},
+		{
+			"Id": "Param5",
+			"GroupId": "",
+			"Name": "スカート揺れ"
+		}
+	],
+	"ParameterGroups": [],
+	"Parts": [
+		{
+			"Id": "main",
+			"Name": "main"
+		},
+		{
+			"Id": "BG",
+			"Name": "BG"
+		},
+		{
+			"Id": "Part",
+			"Name": "眉"
+		},
+		{
+			"Id": "Part2",
+			"Name": "左目"
+		},
+		{
+			"Id": "Part3",
+			"Name": "右目"
+		}
+	]
+}

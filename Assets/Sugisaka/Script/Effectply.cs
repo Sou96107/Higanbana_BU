@@ -1,0 +1,13 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Effectply : MonoBehaviour
+{
+    [SerializeField] private ParticleSystem particle;
+
+    private void PlayEffect()
+    {
+        particle.Play();
+    }
+}

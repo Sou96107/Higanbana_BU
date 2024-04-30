@@ -26,6 +26,9 @@ public class EnemyState_Walk : EnemyState
     // Update is called once per frame
     protected override void Update()
     {
+        if (m_fFrameTime <= 0.0f)
+            return;
+
         base.Update();
 
         switch (m_NowState)

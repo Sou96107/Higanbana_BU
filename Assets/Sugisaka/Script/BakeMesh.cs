@@ -10,6 +10,8 @@ public class BakeMesh : MonoBehaviour
     [SerializeField]
     GameObject BakeClone;
 
+    private List<GameObject> BakeList = new List<GameObject>();
+
     public void AfterImagef(Transform tr)
     {
         // モデル、座標取得、設定
@@ -32,21 +34,32 @@ public class BakeMesh : MonoBehaviour
     {
         yield return new WaitForSeconds(0.15f);
 
-        // 前の残像を消す
-        Destroy(BakeClone);
         // モデル、座標取得、設定
-        BakeClone = Instantiate(BaseMeshObj);
-        BakeClone.transform.position = tr.position;
-        BakeClone.transform.rotation = tr.rotation;
-        BakeClone.GetComponent<CapsuleCollider>().enabled = false;
+        BakeList.Add(Instantiate(BaseMeshObj));
+        BakeList[BakeList.Count - 1].transform.position = tr.position;
+        BakeList[BakeList.Count - 1].transform.rotation = tr.rotation;
+        BakeList[BakeList.Count - 1].GetComponent<CapsuleCollider>().enabled = false;
         // アニメーションの設定
-        BakeClone.GetComponent<Animator>().Play("JustStep", 0, time);
+        BakeList[BakeList.Count - 1].GetComponent<Animator>().Play("JustStep", 0, time);
         // アニメーションの停止
-        BakeClone.GetComponent<Animator>().speed = 0.0f;
+        BakeList[BakeList.Count - 1].GetComponent<Animator>().speed = 0.0f;
+
+        //BakeClone = Instantiate(BaseMeshObj);
+        //BakeClone.transform.position = tr.position;
+        //BakeClone.transform.rotation = tr.rotation;
+        //BakeClone.GetComponent<CapsuleCollider>().enabled = false;
+        //// アニメーションの設定
+        //BakeClone.GetComponent<Animator>().Play("JustStep", 0, time);
+        //// アニメーションの停止
+        //BakeClone.GetComponent<Animator>().speed = 0.0f;
     }
 
     public void DestroyBakeMesh()
     {
         Destroy(BakeClone);
+        for(int i = 0; i < BakeList.Count; i++)
+        {
+            Destroy(BakeList[i]);
+        }
     }
 }

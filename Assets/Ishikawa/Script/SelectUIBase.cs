@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using DG.Tweening;
 
 public class SelectUIBase : MonoBehaviour
 {
@@ -19,20 +20,27 @@ public class SelectUIBase : MonoBehaviour
 
     bool m_Execute; // ‘I‘ð‚³‚ê‚Ä‚¢‚é‚©
     bool m_IsTrans; // “§–¾‚©
+    bool m_IsOnce;
     float m_time;
     Image image;
     KirariImage kirari;
     // Start is called before the first frame update
     protected virtual void Start()
     {
+
+        Debug.Log("‚ ‚ ‚ ");
         image = GetComponent<Image>();
         kirari = transform.GetComponentInChildren<KirariImage>();
         m_BaseScale = transform.localScale;
         m_BaceColor = image.color;
         m_BigScale = transform.localScale * MultiplyValueScale;
+        Debug.Log(m_BigScale);
+        Debug.Log(m_BaseScale);
+        Debug.Log(transform.localScale);
         m_ChangeColor = new Color(m_BaceColor.r, m_BaceColor.g, m_BaceColor.b, 0.1f);
         m_Execute = false;
         m_IsTrans = false;
+        m_IsOnce = false;
     }
 
     // Update is called once per frame
@@ -43,7 +51,6 @@ public class SelectUIBase : MonoBehaviour
             return;
         }
 
-        transform.localScale = Vector3.Lerp(m_BaseScale, m_BigScale, SwayTime);
         if (!m_IsTrans)
         {
             image.color = Vector4.Lerp(m_BaceColor, m_ChangeColor, m_time);
@@ -66,27 +73,41 @@ public class SelectUIBase : MonoBehaviour
 
             if (m_time >= 0.5f)
                 kirari.SetOn();
-               
+
         }
-        
-        m_time += Time.deltaTime;
+
+        m_time += Time.unscaledDeltaTime;
     }
 
-    public void StartChangeScale()
+    public void StartChangeScaleTitle()
     {
         m_Execute = true;
-        transform.localScale = m_BaseScale;
+        transform.DOScale(m_BigScale, 0.15f);
         image.color = m_BaceColor;
     }
 
-    public void StopChangeScale()
+    public void StopChangeScaleTitle()
     {
         m_Execute = false;
-        transform.localScale = m_BaseScale;
+        transform.DOScale(m_BaseScale, 0.15f);
         image.color = m_BaceColor;
         m_IsTrans = false;
         kirari.SetReset();
 
+    }
+
+    public void StartChangeScalePause()
+    {
+        m_Execute = true;
+        image.color = m_BaceColor;
+    }
+
+    public void StopChangeScalePause()
+    {
+        m_Execute = false;
+        image.color = m_BaceColor;
+        m_IsTrans = false;
+        kirari.SetReset();
     }
 
     public virtual void Action()

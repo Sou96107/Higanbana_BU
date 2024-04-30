@@ -68,6 +68,9 @@ public class EnemyState_Attack : EnemyState
         if (AnimEnemy.GetBool("isDeath"))
             return;
 
+        if (m_fFrameTime <= 0.0f)
+            return;
+
         base.Update();
 
         bool IsFound = m_EnemyCom.GetSetIsFound;

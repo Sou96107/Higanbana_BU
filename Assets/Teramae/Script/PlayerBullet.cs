@@ -16,6 +16,7 @@ public class PlayerBullet : MonoBehaviour
     private Vector3 playerPos;
     private GameObject lockonEnemy;
     private bool isJust;
+    private float frameTime;
 
     Vector3 prepos;
     RaycastHit hit;
@@ -24,15 +25,21 @@ public class PlayerBullet : MonoBehaviour
     void Start()
     {
         curDestCount = 0.0f;
+        frameTime = 1.0f;
         prepos = transform.position; //前フレームでの位置
+        FrameManager.Add(gameObject, "PlayerBullet");
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (frameTime <= 0.0f)
+            return;
+
         curDestCount += Time.deltaTime;
         if(curDestCount > destroyCount)
         {
+            FrameManager.Remove(gameObject, "PlayerBullet");
             Destroy(gameObject);
         }
 
@@ -58,12 +65,14 @@ public class PlayerBullet : MonoBehaviour
                     hit.collider.gameObject.GetComponent<Enemy>().Damage((int)damage);
                     //Debug.Log("ダメージ量：" + (int)damage);
 
+                    FrameManager.Remove(gameObject, "PlayerBullet");
                     Destroy(gameObject);
                 }
 
                 if (hit.collider.CompareTag("Stage") || hit.collider.CompareTag("Obj"))
                 {
                     GetComponent<EffectSample>().PlayEffect("Smoke", hit.point);
+                    FrameManager.Remove(gameObject, "PlayerBullet");
                     Destroy(gameObject);
                 }
             }
@@ -71,6 +80,7 @@ public class PlayerBullet : MonoBehaviour
         else
         {
             lockonEnemy.GetComponent<Enemy>().Damage(GameObject.Find("Player").GetComponent<Player>().power);
+            FrameManager.Remove(gameObject, "PlayerBullet");
             Destroy(gameObject);
         }
 
@@ -93,6 +103,18 @@ public class PlayerBullet : MonoBehaviour
     {
         lockonEnemy = enemy;
         isJust = true;
+    }
+
+    public void StartFrame()
+    {
+        frameTime = 1.0f;
+        Debug.Log("プレイヤー銃弾フレーム：" + frameTime);
+    }
+
+    public void StopFrame()
+    {
+        frameTime = 0.0f;
+        Debug.Log("プレイヤー銃弾フレーム：" + frameTime);
     }
 
     //private void OnCollisionEnter(Collision collision)

@@ -12,6 +12,7 @@ public class EnemyBullet : MonoBehaviour
     private Vector3 move;
     private float curDestCount;
     private string enemyName;
+    private float frameTime;
 
     Vector3 prepos;
     RaycastHit hit;
@@ -21,6 +22,8 @@ public class EnemyBullet : MonoBehaviour
     {
         origine = transform.position;
         curDestCount = 0.0f;
+        frameTime = 1.0f;
+        FrameManager.Add(gameObject, "EnemyBullet");
 
         prepos = transform.position; //前フレームでの位置
         //IsHit = false;
@@ -29,6 +32,9 @@ public class EnemyBullet : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (frameTime <= 0.0f)
+            return;
+
         Vector3 pos = transform.position; //今フレームでの位置
 
         Ray ray = new Ray(prepos, (pos - prepos).normalized); //前フレームの位置から今の位置の向きにRayを飛ばす
@@ -119,5 +125,15 @@ public class EnemyBullet : MonoBehaviour
         Destroy(gameObject);
     }
 
+    public void StartFrame()
+    {
+        frameTime = 1.0f;
+        Debug.Log("敵銃弾フレーム：" + frameTime);
+    }
 
+    public void StopFrame()
+    {
+        frameTime = 0.0f;
+        Debug.Log("敵銃弾フレーム：" + frameTime);
+    }
 }

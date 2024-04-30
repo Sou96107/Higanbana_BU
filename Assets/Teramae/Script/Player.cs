@@ -152,6 +152,8 @@ public class Player : MonoBehaviour
     private Vector2 inputKey;
     private Transform TrBeforAvoidance;
     private bool isStart;
+    private bool isPause;
+    private float frameTime;
 
     // Start is called before the first frame update
     void Start()
@@ -198,6 +200,7 @@ public class Player : MonoBehaviour
         isShot = false;
         isBlow = false;
         isStart = false;
+        isPause = false;
         move = Vector2.zero;
         velocity = Vector2.zero;
         latePos = transform.position;
@@ -213,6 +216,7 @@ public class Player : MonoBehaviour
         curDamageTime = 0.0f;
         curMatChange = 0.0f;
         curShotTime = 0.0f;
+        frameTime = 1.0f;
         mainCamera = Camera.main;
         playerAnim = playerModel.GetComponent<Animator>();
         matColor = chisatoMat[0].color;
@@ -220,6 +224,7 @@ public class Player : MonoBehaviour
         chisatoMat[0].color = matColor;
         soundManager = GameObject.Find("SoundManager");
         particle = GameObject.Find("Particle");
+        FrameManager.Add(gameObject, "Player");
         //- UIの色を変える
         reloadUIimg.GetComponent<PushUI>().Push();
         reloadUIbut.GetComponent<PushUI>().Push();
@@ -239,6 +244,12 @@ public class Player : MonoBehaviour
         if (cutIn.activeSelf)
         {
             rb.velocity = Vector3.zero;
+            return;
+        }
+
+        if (Time.timeScale <= 0.0f)
+        {
+            move = Vector2.zero;
             return;
         }
         //- RigidBodyの速度ベクトル取得
@@ -266,6 +277,10 @@ public class Player : MonoBehaviour
     {
         if (cutIn.activeSelf)
             return;
+
+        if (isPause)
+            return;
+
         //- 無敵時間処理
         InvCount();
 
@@ -379,10 +394,13 @@ public class Player : MonoBehaviour
             Vector3 moveDirVector = new Vector3(Mathf.Sin(moveDir * Mathf.Deg2Rad), 0.0f, Mathf.Cos(moveDir * Mathf.Deg2Rad));
             move = new Vector2(moveDirVector.x * moveSpeed, moveDirVector.z * moveSpeed);
 
-            // キャラクターの向きを進行方向に
-            if (moveForward != Vector3.zero)
+            if (Time.timeScale > 0.0f)
             {
-                transform.rotation = Quaternion.LookRotation(moveForward);
+                // キャラクターの向きを進行方向に
+                if (moveForward != Vector3.zero)
+                {
+                    transform.rotation = Quaternion.LookRotation(moveForward);
+                }
             }
 
             //- プレイヤーの向き変更処理
@@ -403,6 +421,9 @@ public class Player : MonoBehaviour
 
     private void OnMove(InputAction.CallbackContext context)
     {
+        if (isPause)
+            return;
+
         //- キーボードフラグが無効なら
         if (!isKeyBoard/* && !isStep && !isRoll && !isJust*/)
         {
@@ -467,6 +488,9 @@ public class Player : MonoBehaviour
 
     private void OnAttack(InputAction.CallbackContext context)
     {
+        if (isPause)
+            return;
+
         //- 各無敵フラグが無効 かつ 残弾数が残っていれば
         if (!isInvRoll && !isInvStep && !isInvJust && !isDamage && !isDeath && !isReload && !isBlow && bulletNum > 0)
         {
@@ -562,6 +586,9 @@ public class Player : MonoBehaviour
 
     private void OnStep(InputAction.CallbackContext context)
     {
+        if (isPause)
+            return;
+
         //- 各無敵フラグが無効 かつ スタミナが残っていたら
         if (/*!isDash && */!isInvRoll && !isInvStep && !isDamage && !isDeath && !isJust && !isBlow && eneBarCS.energy >= eneBarCS.SubStep)
         {
@@ -674,6 +701,9 @@ public class Player : MonoBehaviour
 
     private void OnReload(InputAction.CallbackContext context)
     {
+        if (isPause)
+            return;
+
         if(!isInvRoll && !isInvStep && !isDamage && !isDeath && !isJust && !isBlow && !isBlow && bulletNum != 17 && magazineNum > 0)
         {
             if (!isStart)
@@ -819,6 +849,15 @@ public class Player : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// ポーズフラグのセット
+    /// </summary>
+    /// <param name="flag"></param>
+    public void SetPauseFlag(bool flag)
+    {
+        isPause = flag;
+    }
+
     // 吹き飛び
     public void Blow(Vector3 AddV , float damage)
     {
@@ -863,6 +902,18 @@ public class Player : MonoBehaviour
     public bool IsJust()
     {
         return isJust;
+    }
+
+    public void StartFrame()
+    {
+        frameTime = 1.0f;
+        Debug.Log("プレイヤーフレーム：" +  frameTime);
+    }
+
+    public void StopFrame()
+    {
+        frameTime = 0.0f;
+        Debug.Log("プレイヤーフレーム：" + frameTime);
     }
 
     private void InvCount()
@@ -1095,7 +1146,7 @@ public class Player : MonoBehaviour
                         transform.DOMove(destination, 0.1f).OnComplete(() =>
                         {// 移動し終わったら
                             //- 残像表示(回避
-                            GetComponent<BakeMesh>().AfterImages(TrBeforAvoidance, 0.15f);
+                            GetComponent<BakeMesh>().AfterImages(TrBeforAvoidance, 2.0f);
                             //- 少し後ろにずらした事によって最終的な座標がずれるので２歩目の座標を再計算
                             magnitude = Vector3.Distance(lockonEnemy.transform.position, transform.position) / 2.0f;
                             destination = transform.position + new Vector3(transform.forward.x - 0.4f, transform.forward.y, transform.forward.z) * magnitude;
@@ -1110,7 +1161,7 @@ public class Player : MonoBehaviour
                             transform.DOMove(destination, 0.1f).SetDelay(0.2f).OnComplete(() =>
                             {// 移動し終わったら
                                 //- 残像表示(回避
-                                GetComponent<BakeMesh>().AfterImages(TrBeforAvoidance, 0.5f);
+                                GetComponent<BakeMesh>().AfterImages(TrBeforAvoidance, 2.0f);
                                 //- 少し後ろにずれるよう座標を計算
                                 destination = transform.position + transform.forward * -1.1f;
                                 //- 非透明にする
@@ -1196,7 +1247,7 @@ public class Player : MonoBehaviour
                         transform.DOMove(destination, 0.1f).OnComplete(() =>
                         {// 移動し終わったら
                             //- 残像表示(回避
-                            GetComponent<BakeMesh>().AfterImages(TrBeforAvoidance, 0.15f);
+                            GetComponent<BakeMesh>().AfterImages(TrBeforAvoidance, 2.0f);
                             //- 少し後ろにずらした事によって最終的な座標がずれるので２歩目の座標を再計算
                             magnitude = Vector3.Distance(lockonEnemy.transform.position, transform.position) / 2.0f;
                             destination = transform.position + new Vector3(transform.forward.x + 0.4f, transform.forward.y, transform.forward.z) * magnitude;
@@ -1211,7 +1262,7 @@ public class Player : MonoBehaviour
                             transform.DOMove(destination, 0.1f).SetDelay(0.2f).OnComplete(() =>
                             {// 移動し終わったら
                                 //- 残像表示(回避
-                                GetComponent<BakeMesh>().AfterImages(TrBeforAvoidance, 0.5f);
+                                GetComponent<BakeMesh>().AfterImages(TrBeforAvoidance, 2.0f);
                                 //- 少し後ろにずれるよう座標を計算
                                 destination = transform.position + transform.forward * -1.1f;
                                 //- 非透明にする

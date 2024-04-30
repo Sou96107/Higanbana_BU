@@ -18,6 +18,9 @@ public class EnemyState_Chase : EnemyState
     // Update is called once per frame
     protected override void Update()
     {
+        if (m_fFrameTime <= 0.0f)
+            return;
+
         base.Update();
         float Distance;
         if (m_EnemyCom.GetSetIsFound)@// Œ©‚Â‚¯‚Ä‚¢‚éê‡

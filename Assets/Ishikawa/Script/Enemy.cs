@@ -44,6 +44,7 @@ public class Enemy : MonoBehaviour
     [System.NonSerialized] public bool IsLockOn;
     private bool IsJust;
     private bool IsOnce;
+    private float m_frameTime;
 
     private void Awake()
     {
@@ -63,6 +64,8 @@ public class Enemy : MonoBehaviour
         IsLockOn = false;
         IsJust = false;
         IsOnce = false;
+        m_frameTime = 1.0f;
+        FrameManager.Add(gameObject, "Enemy");
 
         //m_NowState = gameObject.AddComponent<EnemyState_None>(); // 最初はNoneState
         // ここで使うStateコンポーネント追加
@@ -83,6 +86,9 @@ public class Enemy : MonoBehaviour
     void Update()
     {
         if (cutIn.activeSelf)
+            return;
+
+        if (m_frameTime <= 0.0f)
             return;
 
         if (Hp <= 0)
@@ -173,6 +179,7 @@ public class Enemy : MonoBehaviour
             mesh.materials[0].SetFloat("_Threshold", alfa);
             yield return null;
         }
+        FrameManager.Remove(gameObject, "Enemy");
         Destroy(gameObject);
     }
 
@@ -276,5 +283,15 @@ public class Enemy : MonoBehaviour
         Aimcanvas.SetActive(flg);
 
         IsLockOn = flg;
+    }
+
+    public void StartFrame()
+    {
+        m_frameTime = 1.0f;
+    }
+
+    public void StopFrame()
+    {
+        m_frameTime = 0.0f;
     }
 }

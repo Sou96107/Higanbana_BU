@@ -54,24 +54,49 @@ public class TitleCursor : MonoBehaviour
     }
     */
 
+    [SerializeField, Header("UI")]
+    private GameObject[] uiObj;
     [SerializeField, Header("カーソルUI")]
     private GameObject[] cursorObj;
     [SerializeField, Header("カーソル移動速度")]
     private float moveSpeed = 10.0f;
+    [SerializeField]
+    int selectNum;
+
 
 
     float ScreanWidth = Screen.width;           // 
     float ScreanHeight = Screen.height;         // 
     bool isKeyBoard;                            // キーボード操作かどうか
     Vector2 input;                              // 入力格納用
-    bool isFinish;                              // 遷移中フラグ
+    public bool isFinish;                       // 遷移中フラグ
     [SerializeField] GameObject m_SelectObj;    // 選択オブジェクト保持用
     GameObject SoundManager;
+    private UIinput inputUI;
+    bool isSelect;
+    float selectTime;
+    bool isOnce;
 
     private void Start()
     {
         input = Vector2.zero;
         SoundManager = GameObject.Find("SoundManager");
+
+        inputUI = new UIinput();
+        inputUI.UI.SelectUP.performed += OnSelectUP;
+        inputUI.UI.SelectDown.performed += OnSelectDown;
+        inputUI.Enable();
+
+        selectNum = 0;
+        transform.position = uiObj[selectNum].transform.position;
+        m_SelectObj = uiObj[selectNum]; 
+        if (m_SelectObj.tag == "TitleUI")
+            m_SelectObj.GetComponent<SelectUIBase>().StartChangeScaleTitle();
+        else if (m_SelectObj.tag == "PauseUI")
+            m_SelectObj.GetComponent<SelectUIBase>().StartChangeScalePause();
+        isSelect = false;
+        selectTime = 0.0f;
+        isOnce = false;
     }
 
     private void Update()
@@ -91,7 +116,7 @@ public class TitleCursor : MonoBehaviour
             return;
 
         // 入力処理
-        CheckInput();
+        //CheckInput();
 
 
         // Enter(決定)押したら
@@ -100,14 +125,42 @@ public class TitleCursor : MonoBehaviour
             if (m_SelectObj == null)
                 return;
 
+            isSelect = CheckDecition();
+
             // SE再生
             SoundManager.GetComponent<SoundManager>().PlaySE("決定音_発砲");
-            Invoke("glassSE", 0.2f);
+            //Invoke("glassSE", 0.2f);
 
-            cursorObj[0].SetActive(false);
+            //cursorObj[0].SetActive(false);
 
-            StartCoroutine("a");
-            isFinish = true;
+            //StartCoroutine("a");
+            //isFinish = true;
+        }
+
+        if(isSelect)
+        {
+            selectTime += Time.unscaledDeltaTime;
+            if (selectTime >= 0.2f)
+            {
+                if (!isOnce)
+                {
+                    glassSE();
+                    isOnce = true;
+                }
+                if (cursorObj[0].gameObject.activeSelf)
+                {
+                    cursorObj[0].SetActive(false);
+                }
+                if (selectTime >= 0.5f)
+                {
+                    Time.timeScale = 1.0f;
+                    m_SelectObj.GetComponent<SelectUIBase>().Action();
+                    isFinish = true;
+                    isSelect = false;
+                    isOnce = false;
+                    selectTime = 0.0f;
+                }
+            }
         }
     }
 
@@ -167,29 +220,31 @@ public class TitleCursor : MonoBehaviour
         return false;
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        Debug.Log("選択" + collision.gameObject.name);
+    //private void OnCollisionEnter2D(Collision2D collision)
+    //{
+    //    Debug.Log("選択" + collision.gameObject.tag);
 
-        // SE再生
-        SoundManager.GetComponent<SoundManager>().PlaySE("選択音");
+    //    // SE再生
+    //    SoundManager.GetComponent<SoundManager>().PlaySE("選択音");
 
-        // 選択したオブジェクトを保持
-        m_SelectObj = collision.gameObject;
-        
-        collision.gameObject.GetComponent<SelectUIBase>().StartChangeScale();
-    }
+    //    // 選択したオブジェクトを保持
+    //    m_SelectObj = collision.gameObject;
 
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        // 選択したオブジェクトを解除
-        m_SelectObj = null;
 
-        collision.gameObject.GetComponent<SelectUIBase>().StopChangeScale();
-    }
+    //    collision.gameObject.GetComponent<SelectUIBase>().StartChangeScale();
+    //}
+
+    //private void OnCollisionExit2D(Collision2D collision)
+    //{
+    //    // 選択したオブジェクトを解除
+    //    m_SelectObj = null;
+
+    //    collision.gameObject.GetComponent<SelectUIBase>().StopChangeScale();
+    //}
 
     private void glassSE()
     {
+        Debug.Log("ううう");
         SoundManager.GetComponent<SoundManager>().PlaySE("決定音");
         cursorObj[1].SetActive(true);
     }
@@ -198,5 +253,59 @@ public class TitleCursor : MonoBehaviour
     {
         yield return new WaitForSeconds(0.7f);
         m_SelectObj.GetComponent<SelectUIBase>().Action();
+    }
+
+    private void OnSelectUP(InputAction.CallbackContext context)
+    {
+        selectNum--;
+        if (selectNum < 0)
+            selectNum = uiObj.Length - 1;
+        transform.position = uiObj[selectNum].GetComponent<RectTransform>().position;
+        // SE再生
+        SoundManager.GetComponent<SoundManager>().PlaySE("選択音");
+
+        if (m_SelectObj.tag == "TitleUI")
+        {
+            m_SelectObj.GetComponent<SelectUIBase>().StopChangeScaleTitle();
+            // 選択したオブジェクトを保持
+            m_SelectObj = uiObj[selectNum].gameObject;
+
+            m_SelectObj.GetComponent<SelectUIBase>().StartChangeScaleTitle();
+        }
+        else if(m_SelectObj.tag == "PauseUI")
+        {
+            m_SelectObj.GetComponent<SelectUIBase>().StopChangeScalePause();
+            // 選択したオブジェクトを保持
+            m_SelectObj = uiObj[selectNum].gameObject;
+
+            m_SelectObj.GetComponent<SelectUIBase>().StartChangeScalePause();
+        }
+    }
+
+    private void OnSelectDown(InputAction.CallbackContext context)
+    {
+        selectNum++;
+        if (selectNum > uiObj.Length - 1)
+            selectNum = 0;
+        transform.position = uiObj[selectNum].GetComponent<RectTransform>().position;
+        // SE再生
+        SoundManager.GetComponent<SoundManager>().PlaySE("選択音");
+
+        if (m_SelectObj.tag == "TitleUI")
+        {
+            m_SelectObj.gameObject.GetComponent<SelectUIBase>().StopChangeScaleTitle();
+            // 選択したオブジェクトを保持
+            m_SelectObj = uiObj[selectNum].gameObject;
+
+            m_SelectObj.GetComponent<SelectUIBase>().StartChangeScaleTitle();
+        }
+        else if (m_SelectObj.tag == "PauseUI")
+        {
+            m_SelectObj.gameObject.GetComponent<SelectUIBase>().StopChangeScalePause();
+            // 選択したオブジェクトを保持
+            m_SelectObj = uiObj[selectNum].gameObject;
+
+            m_SelectObj.GetComponent<SelectUIBase>().StartChangeScalePause();
+        }
     }
 }

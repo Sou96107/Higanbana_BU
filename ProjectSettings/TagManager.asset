@@ -8,6 +8,8 @@ TagManager:
   - EnemyBullet
   - Obj
   - Stage
+  - TitleUI
+  - PauseUI
   layers:
   - Default
   - TransparentFX

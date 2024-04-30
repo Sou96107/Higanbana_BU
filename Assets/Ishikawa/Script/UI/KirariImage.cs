@@ -33,7 +33,7 @@ public class KirariImage : MonoBehaviour
 
         rect.anchoredPosition = Vector2.Lerp(originPos, GoalPos, interpolation);
 
-        interpolation += Time.deltaTime * speed;
+        interpolation += Time.unscaledDeltaTime * speed;
     }
 
     public void SetOn()

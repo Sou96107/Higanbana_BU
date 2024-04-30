@@ -22,6 +22,7 @@ public class EnemyShotManager : MonoBehaviour
     private float orderTime;
     private float currentTime;
     private int enemyNum;
+    private float frameTime;
 
     // Start is called before the first frame update
     void Start()
@@ -30,11 +31,16 @@ public class EnemyShotManager : MonoBehaviour
         orderTime = 0.0f;
         currentTime = 0.0f;
         enemyNum = 0;
+        frameTime = 1.0f;
+        FrameManager.Add(gameObject, "EnemyShotManager");
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (frameTime <= 0.0f)
+            return;
+
         if (enemies.Count > 0)
         {
             switch (nowState)
@@ -110,5 +116,17 @@ public class EnemyShotManager : MonoBehaviour
     {
         enemies.Remove(enemy);
         Debug.Log("攻撃してくる敵減算：" + enemies.Count);
+    }
+
+    public void StartFrame()
+    {
+        frameTime = 1.0f;
+        Debug.Log("敵銃撃マネージャーフレーム：" + frameTime);
+    }
+
+    public void StopFrame()
+    {
+        frameTime = 0.0f;
+        Debug.Log("敵銃撃マネージャーフレーム：" + frameTime);
     }
 }
